@@ -7,7 +7,41 @@ import { verifyToken } from '../middlewares/authMiddleware.mjs';
 
 const router = express.Router();
 
-// Ruta para registrar usuario
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: API endpoints for user authentication
+ */
+
+/**
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: Register a new user with email and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       '200':
+ *         description: User registered successfully
+ *       '400':
+ *         description: Bad request
+ *       '500':
+ *         description: Internal server error
+ */
 router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -30,7 +64,34 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Ruta para iniciar sesión
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Log in a user
+ *     description: Log in a user with email and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       '200':
+ *         description: User logged in successfully
+ *       '401':
+ *         description: Invalid credentials
+ *       '500':
+ *         description: Internal server error
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -54,17 +115,58 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Ruta para actualizar el perfil del usuario
+/**
+ * @swagger
+ * /api/users/update-profile:
+ *   post:
+ *     summary: Update user profile
+ *     description: Update the profile of the logged-in user
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               name:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             required:
+ *               - userId
+ *               - name
+ *               - bio
+ *               - phone
+ *               - email
+ *               - password
+ *     responses:
+ *       '200':
+ *         description: Profile updated successfully
+ *       '400':
+ *         description: Bad request
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
 router.post('/update-profile', verifyToken, async (req, res) => {
   const { userId, name, bio, phone, email, password } = req.body;
 
-  // Validar que todos los campos estén presentes
   if (!userId || !name || !bio || !phone || !email || !password) {
     return res.status(400).json({ message: 'Todos los campos son obligatorios' });
   }
 
   try {
-    // Verificar si el nuevo email ya existe
     const [existingUser] = await pool.query('SELECT * FROM users WHERE email = ? AND id != ?', [email, userId]);
     if (existingUser.length > 0) {
       return res.status(400).json({ message: 'El email ya está registrado por otro usuario' });
